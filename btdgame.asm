@@ -23,6 +23,7 @@ ninjaCost   dw 150
 ninjas      dw 255 dup(00) ; ninja places beckend
 wizards     dw 255 dup(00) ; wizard places beckend
 
+timehundreth    db 0
 timesec     db 0
 timemin     db 0
 
@@ -1679,10 +1680,63 @@ PROC fiveSecPass
 ENDP fiveSecPass
 
 
-;description
-PROC sixtyMilisecPass
+;get MT return "$" if 50 milisec pass
+PROC fiftyMilisecPass
+    push bp
+    mov bp, sp
+    push ax
+    push cx
+    push dx
+
+    mov ah, 2Ch
+    int 21h
+
     
-ENDP sixtyMilisecPass
+    cmp cl, [timemin]
+    je haventpassed1
+    ; second must have passed too
+
+
+    add dl, 95      ; ; 95+dl > [timehandreth] --> timehandreth + 5
+    cmp dl, [timehundreth]
+    jl havantpassedmil
+    mov ax, "$"
+    add [bp + 4], ax ; passed
+    mov [timesec], dh
+    mov [timemin], cl
+    jmp havantpassedmil
+
+    haventpassed1:
+    cmp [timesec], dh
+    je haventpassed
+
+    add dl, 95      ; ; 94+dl > [timehandreth] --> timehandreth + 5
+    cmp dl, [timehundreth]
+    jl havantpassedmil
+    mov ax, "$"
+    add [bp + 4], ax ; passed
+    mov [timesec], dh
+    jmp havantpassedmil
+
+    haventpassed:
+    sub dl, 5       ; 50 milisec
+    cmp dl, [timehundreth]
+    jl havantpassedmil
+
+    add dl, 5
+    mov [timehundreth]
+    mov ax, "$"
+    mov [bp + 4], ax
+
+    havantpassedmil:
+
+    
+    pop dx
+    pop cx
+    pop ax
+    pop bp
+    ret
+ENDP fiftyMilisecPass
 
 start:
 mov ax, @data
@@ -1699,6 +1753,7 @@ int 21h
 
 mov [timemin], cl
 mov [timesec], dh
+mov [timehundreth], dl
 
 call FirstPrintAll
 
@@ -1713,13 +1768,22 @@ call screenToScreen
 main:
 call PrintAllTOSeg
 call chackPressed
+
+push 0
+call fiftyMilisecPass
+pop ax
+
+mov bx, "$"
+cmp ax, bx
+jne keepMain
 call handelballoons
 
 push 0
 call fiveSecPass
 pop ax
 
-cmp ax, "$"
+mov bx, "$"
+cmp ax, bx
 jne keepMain
 
 call moneytimecount
