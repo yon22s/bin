@@ -12,6 +12,10 @@ ends buildScreen
 
 DATASEG
 
+timehundreth    db 0
+timesec     db 0
+timemin     db 0
+
 balloons     dw 255 dup(00)
 
 money       dw 250 ; money amount that player have now
@@ -23,9 +27,7 @@ ninjaCost   dw 150
 ninjas      dw 255 dup(00) ; ninja places beckend
 wizards     dw 255 dup(00) ; wizard places beckend
 
-timehundreth    db 0
-timesec     db 0
-timemin     db 0
+
 
 stillPressedninja db 0
 stillPressedwizard db 0
@@ -51,6 +53,7 @@ lastCurserPlace dw 0
 length      dw 200
 width       dw 320
 
+counter1    db 0
 
 balloonsOnScreen db 0
 
@@ -866,11 +869,11 @@ PROC BalloonToGo
 
 
     keepRightB:
-    inc cx
+    add cx, 1
     jmp placeChanged
 
     keepLeftB:
-    dec cx
+    sub cx, 1
     jmp placeChanged
 
     keepUpB:
@@ -1635,53 +1638,8 @@ PROC moneytimecount
 ENDP moneytimecount
 
 
-;get MT return "$" if 5 sec pass
-PROC fiveSecPass
-    push bp
-    mov bp, sp
-    push ax
-    push cx
-    push dx
-
-    mov ah, 2Ch
-    int 21h
-    
-    cmp cl, [timemin]
-    je haventpassed1
-
-    add dh, 55        ; 55+dh > [timesec] --> timesec + 5
-    cmp [timesec], dh
-    jg haventpassed
-
-    sub dh, 55
-    mov [timemin], cl
-    mov [timesec], dh
-    mov ax, "$"
-    add [bp + 4], ax ; passed
-    jmp haventpassed
-
-    haventpassed1:
-    sub dh, 5
-    cmp [timesec], dh
-    jg haventpassed
-
-    add dh, 5
-    mov [timesec], dh
-    mov ax, "$"
-    add [bp + 4], ax ; passed
-
-    haventpassed:
-    
-    pop dx
-    pop cx
-    pop ax
-    pop bp
-    ret
-ENDP fiveSecPass
-
-
 ;get MT return "$" if 50 milisec pass
-PROC fiftyMilisecPass
+PROC fourtyMilisecPass
     push bp
     mov bp, sp
     push ax
@@ -1693,38 +1651,42 @@ PROC fiftyMilisecPass
 
     
     cmp cl, [timemin]
-    je haventpassed1
+    je haventpass1
     ; second must have passed too
 
 
-    add dl, 95      ; ; 95+dl > [timehandreth] --> timehandreth + 5
+    add dl, 96      ; ; 96+dl > [timehandreth] --> timehandreth + 4
     cmp dl, [timehundreth]
     jl havantpassedmil
     mov ax, "$"
     add [bp + 4], ax ; passed
     mov [timesec], dh
     mov [timemin], cl
+    sub dl, 96
+    mov [timehundreth], dl
     jmp havantpassedmil
 
-    haventpassed1:
+    haventpass1:
     cmp [timesec], dh
-    je haventpassed
+    je haventpass
 
-    add dl, 95      ; ; 94+dl > [timehandreth] --> timehandreth + 5
-    cmp dl, [timehundreth]
-    jl havantpassedmil
+    add dl, 96      ; ; 96+dl > [timehandreth] --> timehandreth + 4
+    cmp [timehundreth], dl
+    jg havantpassedmil
     mov ax, "$"
     add [bp + 4], ax ; passed
     mov [timesec], dh
+    sub dl, 96
+    mov [timehundreth], dl
     jmp havantpassedmil
 
-    haventpassed:
-    sub dl, 5       ; 50 milisec
+    haventpass:
+    sub dl, 4       ; 40 milisec
     cmp dl, [timehundreth]
     jl havantpassedmil
 
-    add dl, 5
-    mov [timehundreth]
+    add dl, 4
+    mov [timehundreth], dl
     mov ax, "$"
     mov [bp + 4], ax
 
@@ -1736,7 +1698,8 @@ PROC fiftyMilisecPass
     pop ax
     pop bp
     ret
-ENDP fiftyMilisecPass
+ENDP fourtyMilisecPass
+
 
 start:
 mov ax, @data
@@ -1770,24 +1733,25 @@ call PrintAllTOSeg
 call chackPressed
 
 push 0
-call fiftyMilisecPass
+call fourtyMilisecPass
 pop ax
 
 mov bx, "$"
 cmp ax, bx
 jne keepMain
 call handelballoons
+call handelballoons
 
-push 0
-call fiveSecPass
-pop ax
+inc [counter1]
 
-mov bx, "$"
-cmp ax, bx
-jne keepMain
+cmp [counter1], 125 ; 5 sec
+jl keepMain
 
 call moneytimecount
+push offset balloons
 call createRedballoon
+
+mov [counter1], 0
 
 keepMain:
 call screenToScreen
