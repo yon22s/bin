@@ -1,0 +1,11 @@
+
+ Start  Stop   Length Name               Class
+
+ 00000H 00960H 00961H _TEXT              CODE
+ 00970H 0201DH 016AEH _DATA              DATA
+ 02020H 0211FH 00100H STACK              STACK
+ 02120H 11B1FH 0FA00H BECKGROUNDSEG      
+ 11B20H 2151FH 0FA00H BUILDSCREEN        
+
+Program entry point at 0000:08F7
+
