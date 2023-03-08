@@ -1442,13 +1442,13 @@ PROC handleShots
     loopMovShots:
     mov ax, [word bx]
     cmp ax, 0
-    je NotOnScreen
+    je NotOnScreen1
 
     push bx ;;
     push [word bx]  ; shot place
     mov ax, [di]
     shr ax, 1
-    mov bx, offset baloons
+    mov bx, offset balloons
     add bx, ax
     push [word bx]  ; baloon place
     call NShotToGo
@@ -1458,10 +1458,10 @@ PROC handleShots
 
     mov [word bx], ax        ; shot place
 
-    NotOnScreen:
+    NotOnScreen1:
     add bx, 2
     inc di
-    loop loopDecballoon
+    loop loopMovShots
 
 
     pop dx
@@ -1534,7 +1534,8 @@ PROC createANShot
     mov bx, [bp + 10]
     mov cx, 0
     findNShotMTPlace:
-    cmp [bx], 0
+    mov al, [bx]
+    cmp al, 0
     je createTheNshot
     inc bx
     inc cx
@@ -1556,7 +1557,7 @@ PROC createANShot
 ENDP createANShot
 
 
-;get: offset ninjas, offset baloons
+;get: offset ninjas, offset balloons
 PROC checkNinjasRadios
     push bp
     mov bp, sp
@@ -1577,9 +1578,9 @@ PROC checkNinjasRadios
     je AllNinjasChecked
 
 
-    mov di, [bp + 6]    ; offset baloons
+    mov di, [bp + 6]    ; offset balloons
     mov cx, 200
-    loopcheckBaloonsIn:
+    loopcheckballoonsIn:
     push bx
     push cx
     push di
@@ -1643,7 +1644,7 @@ PROC checkNinjasRadios
     add di, 2
     pop cx
     pop bx
-    loop loopcheckBaloonsIn
+    loop loopcheckballoonsIn
 
 
     pop bx
