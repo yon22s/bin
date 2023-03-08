@@ -16,7 +16,7 @@ timehundreth    db 0
 timesec     db 0
 timemin     db 0
 
-balloons     dw 255 dup(00)
+balloons     dw 200 dup(00)
 
 money       dw 250 ; money amount that player have now
 echo        dw 100 ; echo
@@ -27,6 +27,8 @@ ninjaCost   dw 150
 ninjas      dw 255 dup(00) ; ninja places beckend
 wizards     dw 255 dup(00) ; wizard places beckend
 
+NShots1     dw 50 dup(00)
+NShots2     db 50 dup(0)
 
 
 stillPressedninja db 0
@@ -64,6 +66,7 @@ balloonsOnScreen db 0
 
 redballoonFile db 'redbln.bmp', 0 ; length - 12, width - 8
 
+Helper      dw 0
 
 CODESEG
 
@@ -766,7 +769,7 @@ ENDP printBackground
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                                                                                ;
 ;                                                                                                                                ;
-;                                                              balloons                                                           ;
+;                                                              balloons                                                          ;
 ;                                                                                                                                ;
 ;                                                                                                                                ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1414,6 +1417,251 @@ PROC createAwizard
     ret 4
 ENDP createAwizard
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                                                                                                                                ;
+;                                                                                                                                ;
+;                                                               Shots                                                            ;
+;                                                                                                                                ;
+;                                                                                                                                ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;description
+PROC handleShots
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov bx, offset NShots1
+    mov di, offset NShots2
+    mov cx, 50
+
+    loopMovShots:
+    mov ax, [word bx]
+    cmp ax, 0
+    je NotOnScreen
+
+    push bx ;;
+    push [word bx]  ; shot place
+    mov ax, [di]
+    shr ax, 1
+    mov bx, offset baloons
+    add bx, ax
+    push [word bx]  ; baloon place
+    call NShotToGo
+    pop ax
+
+    pop bx ;;
+
+    mov [word bx], ax        ; shot place
+
+    NotOnScreen:
+    add bx, 2
+    inc di
+    loop loopDecballoon
+
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret
+ENDP handleShots
+
+
+;get: baloon place, shot place
+PROC NShotToGo
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+
+
+    mov ax, [bp + 6]
+
+    xor dx, dx
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    mov bx, dx ; x
+    mov [Helper], ax ; y
+    
+    mov ax, [bp + 4]
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    ; check vector
+    sub bx, dx          ; x
+    sub [Helper], ax
+    mov ax, [Helper]    ; y
+
+    shl ax, 2
+    shl bx, 2   ; vector : 4
+
+    mov cx, 320
+    mul cx
+
+    mov dx, [bp + 6]
+    add dx, ax
+    add dx, bx
+
+    mov [bp + 6], dx
+
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret 2
+ENDP NShotToGo
+
+;get: place of shot, baloon number in array, offset NShots1, offset NShots2
+PROC createANShot
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    
+
+    mov bx, [bp + 10]
+    mov cx, 0
+    findNShotMTPlace:
+    cmp [bx], 0
+    je createTheNshot
+    inc bx
+    inc cx
+    jmp findNShotMTPlace
+
+    createTheNshot:
+    mov ax, [bp + 6]
+    mov [bx], al    ;?
+    mov bx, [bp + 8]
+    add bx, cx
+    mov ax, [bp + 4]
+    mov [word bx], ax
+
+    pop cx
+    pop bx
+    pop ax
+    pop bx
+    ret 8
+ENDP createANShot
+
+
+;get: offset ninjas, offset baloons
+PROC checkNinjasRadios
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+    push di
+    
+
+    mov bx, [bp + 4]    ; offset ninjas
+    loopNinjasRadios:
+    push bx
+
+    xor ax, ax
+    mov ax, [bx]
+    cmp ax, 0
+    je AllNinjasChecked
+
+
+    mov di, [bp + 6]    ; offset baloons
+    mov cx, 200
+    loopcheckBaloonsIn:
+    push bx
+    push cx
+    push di
+
+    mov ax, [bx]
+
+    xor dx, dx
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    mov bx, dx ; x
+    mov [Helper], ax ; y
+    
+    mov ax, [di]
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    ; check radios
+    sub dx, bx
+    mov bx, dx
+    sub ax, [Helper]
+
+    mov cx, ax
+    mul cx      ; ax = ax^2
+
+    mov [Helper], ax
+
+    mov cx, bx
+    mov ax, bx
+    mul cx      ; ax = bx^2
+
+    add ax, [Helper]
+
+    mov bx, 1600    ; 40 * 40 when 40 = radios
+
+    cmp ax, bx
+    jg notInRadios
+
+    ; In Radios
+    pop di
+    pop cx
+    mov dx, 200
+    sub dx, cx      ; baloon number in array
+    pop bx
+    mov ax, [bx]    ; place of ninja
+
+    push offset NShots2
+    push offset NShots1
+    push dx
+    push ax
+    call createANShot
+
+    push bx
+    xor cx, cx
+    push cx
+    push di
+
+
+    notInRadios:
+    pop di
+    add di, 2
+    pop cx
+    pop bx
+    loop loopcheckBaloonsIn
+
+
+    pop bx
+    add bx, 2
+    jmp loopNinjasRadios
+
+    AllNinjasChecked:
+
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret 4
+ENDP checkNinjasRadios
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                                                                                ;
 ;                                                                                                                                ;
@@ -1639,7 +1887,7 @@ ENDP moneytimecount
 
 
 ;get MT return "$" if 50 milisec pass
-PROC fourtyMilisecPass
+PROC fiftyMilisecPass
     push bp
     mov bp, sp
     push ax
@@ -1655,14 +1903,14 @@ PROC fourtyMilisecPass
     ; second must have passed too
 
 
-    add dl, 96      ; ; 96+dl > [timehandreth] --> timehandreth + 4
+    add dl, 95      ; ; 95+dl > [timehandreth] --> timehandreth + 5
     cmp dl, [timehundreth]
     jl havantpassedmil
     mov ax, "$"
     add [bp + 4], ax ; passed
     mov [timesec], dh
     mov [timemin], cl
-    sub dl, 96
+    sub dl, 95
     mov [timehundreth], dl
     jmp havantpassedmil
 
@@ -1670,22 +1918,22 @@ PROC fourtyMilisecPass
     cmp [timesec], dh
     je haventpass
 
-    add dl, 96      ; ; 96+dl > [timehandreth] --> timehandreth + 4
+    add dl, 95      ; ; 95+dl > [timehandreth] --> timehandreth + 5
     cmp [timehundreth], dl
     jg havantpassedmil
     mov ax, "$"
     add [bp + 4], ax ; passed
     mov [timesec], dh
-    sub dl, 96
+    sub dl, 95
     mov [timehundreth], dl
     jmp havantpassedmil
 
     haventpass:
-    sub dl, 4       ; 40 milisec
+    sub dl, 5       ; 50 milisec
     cmp dl, [timehundreth]
     jl havantpassedmil
 
-    add dl, 4
+    add dl, 5
     mov [timehundreth], dl
     mov ax, "$"
     mov [bp + 4], ax
@@ -1698,7 +1946,7 @@ PROC fourtyMilisecPass
     pop ax
     pop bp
     ret
-ENDP fourtyMilisecPass
+ENDP fiftyMilisecPass
 
 
 start:
@@ -1733,7 +1981,7 @@ call PrintAllTOSeg
 call chackPressed
 
 push 0
-call fourtyMilisecPass
+call fiftyMilisecPass
 pop ax
 
 mov bx, "$"
@@ -1744,7 +1992,7 @@ call handelballoons
 
 inc [counter1]
 
-cmp [counter1], 125 ; 5 sec
+cmp [counter1], 95 ; 5 sec ; 19 (ticks per sec) * 5
 jl keepMain
 
 call moneytimecount
