@@ -28,7 +28,10 @@ ninjas      dw 255 dup(00), 0 ; ninja places beckend
 wizards     dw 255 dup(00), 0 ; wizard places beckend
 
 NShots1     dw 50 dup(00)
-NShots2     db 50 dup(0)
+NShots2     dw 50 dup(00)
+
+WShots1     dw 50 dup(00)
+WShots2     dw 50 dup(00)
 
 
 stillPressedninja db 0
@@ -42,6 +45,7 @@ ninja       db 400 dup(0)
 wizard      db 400 dup(0)
 redballon   db 400 dup(0)
 shuriken    db 400 dup(0)
+wizardShot  db 400 dup(0) 
 
 filehandle  dw ?
 Header      db 54 dup (0)
@@ -58,6 +62,7 @@ width       dw 320
 
 counter1    db 0
 counter2    db 0
+counter3    db 0
 
 balloonsOnScreen db 0
 
@@ -68,7 +73,10 @@ balloonsOnScreen db 0
 
 redballoonFile  db 'redbln.bmp', 0 ; length - 12, width - 8
 shurikenFile    db 'shuriken.bmp', 0 
+WShotFile       db 'wizshot.bmp', 0
 
+x3          db 0
+y3          db 0
 
 Helper      dw 0
 
@@ -703,6 +711,14 @@ PROC FirstPrintAll
     push offset Palette
     call FirstTimePrint
 
+    push 20
+    push 20
+    push offset wizardShot
+    push offset WShotFile
+    push offset Header
+    push offset Palette
+    call FirstTimePrint
+
     pop bp
 ENDP FirstPrintAll
 
@@ -906,7 +922,7 @@ PROC BalloonToGo
 ENDP BalloonToGo
 
 
-;get: Balloon number in balloons, offset balloons
+;get: Balloon number in balloons * 2, offset balloons
 PROC PopBalloon
     push bp
     mov bp, sp
@@ -914,10 +930,12 @@ PROC PopBalloon
     push bx
     push cx
 
+    xor bx, bx
+    xor cx, cx
+
     mov bx, [bp + 6]    ; offset balloons
 
     mov cx, [bp + 4]    ; baloon number
-    shl cx, 1      ; cx = cx*2
 
     add bx, cx
 
@@ -1465,7 +1483,7 @@ ENDP createAwizard
 ;                                                                                                                                ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;description
+;get: offset balloon, offset NShots1, offset NShots2, offset WShots1, offset WShots2
 PROC handleShots
     push bp
     mov bp, sp
@@ -1474,64 +1492,116 @@ PROC handleShots
     push cx
     push dx
 
-    mov bx, offset NShots1
-    mov di, offset NShots2
+    mov bx, [bp + 6]
+    mov di, [bp + 8]
     mov cx, 50
 
-    loopMovShots:
+    loopMovNShots:
     mov ax, [word bx]
     cmp ax, 0
     je NotOnScreen1
     xor ax, ax
 
     push bx ;;
+    push di ;;
 
     push [word bx]  ; shot place
-    mov al, [di]
-    shl al, 1       ; mul by 2
-    mov bx, offset balloons
+    mov ax, [word di]
+    mov bx, [bp + 4]    ; offset balloons
     add bx, ax
     push [word bx]  ; baloon place
     call NShotToGo
     pop ax
 
+    pop di ;;
     pop bx ;;
 
     mov [word bx], ax   ; shot place
 
     push bx ;;;
+    push di ;;;
 
-    push ax     ; shot place
+    push [word bx]     ; shot place
     xor ax, ax
-    mov al, [di]
-    shl al, 1       ; mul by 2
-    mov bx, offset balloons
+    mov ax, [word di]
+    mov bx, [bp + 4]
     add bx, ax
     push [word bx]  ; baloon place
-    call cmpShurikenToBalloon
+    call cmpShotToBalloon
     pop ax
 
+    pop di ;;;
     pop bx ;;;
 
     cmp ax, "$"
     jne NotOnScreen1
     ; POP
     xor ax, ax
-    mov al, [di]
+    mov ax, [word di]
 
-    push offset balloons
+    push [bp + 4]
     push ax
     call PopBalloon
 
     mov ax, 0
-    mov [di], al
+    mov [word di], ax
 
     mov [word bx], ax
 
     NotOnScreen1:
     add bx, 2
-    inc di
-    loop loopMovShots
+    add di, 2
+    loop loopMovNShots
+
+    ; wizard shots
+
+    mov bx, [bp + 10]
+    mov di, [bp + 12]
+    mov cx, 50
+
+    loopMovWShots:
+    mov ax, [word bx]
+    cmp ax, 0
+    je NotOnScreen2
+    xor ax, ax
+
+    push bx ;;
+    push di ;;
+
+    push [word di]
+    push [word bx]
+    call WShotToGo
+    pop ax
+
+    pop di ;;
+    pop bx ;;
+
+    mov [word bx], ax   ; shot place
+
+    push bx ;;;
+    push di ;;;
+
+    push [bp + 4]       ; offset balloons
+    push [word bx]      ; shot place
+    call cmpShotToBalloonW
+    pop dx
+    pop ax
+
+    pop di ;;;
+    pop bx ;;;
+
+    cmp ax, "$"
+    jne NotOnScreen2
+    ; POP
+
+    push [bp + 4]
+    push dx
+    call PopBalloon
+
+    NotOnScreen2:
+    add bx, 2
+    add di, 2
+    loop loopMovWShots
 
 
     pop dx
@@ -1539,7 +1609,7 @@ PROC handleShots
     pop bx
     pop ax
     pop bp
-    ret
+    ret 10
 ENDP handleShots
 
 
@@ -1554,6 +1624,14 @@ PROC NShotToGo
 
 
     mov ax, [bp + 4]    ; baloon place
+    cmp ax, 0
+    jne BalloonIsExist
+
+    mov ax, 0
+    mov [bp + 6], ax
+    jmp shurikenPlaceFound
+
+    BalloonIsExist:
     add ax, 1924
 
     xor dx, dx
@@ -1669,7 +1747,7 @@ ENDP NShotToGo
 
 
 ;get: baloon place, shot place
-PROC cmpShurikenToBalloon
+PROC cmpShotToBalloon
     push bp
     mov bp, sp
     push ax
@@ -1702,19 +1780,19 @@ PROC cmpShurikenToBalloon
     and dx, 1ffh
 
     ; check radios
-    add bx, 10   ; half gap when gap = 12
+    add bx, 8   ; half gap when gap = 16
     cmp dx, bx
     jg notPoping
 
-    sub bx, 20  ; gap
+    sub bx, 16  ; gap
     cmp dx, bx
     jl notPoping
 
-    add [Helper], 10   ; half gap when gap = 12
+    add [Helper], 8   ; half gap when gap = 16
     cmp ax, [Helper]
     jg notPoping
 
-    sub [Helper], 20  ; gap
+    sub [Helper], 16  ; gap
     cmp ax, [Helper]
     jl notPoping
 
@@ -1730,10 +1808,10 @@ PROC cmpShurikenToBalloon
     pop ax
     pop bp
     ret 2
-ENDP cmpShurikenToBalloon
+ENDP cmpShotToBalloon
 
 
-;get: place of shot, baloon number in array, offset NShots1, offset NShots2
+;get: place of shot, baloon number in array * 2, offset NShots1, offset NShots2
 PROC createANShot
     push bp
     mov bp, sp
@@ -1745,7 +1823,7 @@ PROC createANShot
     mov bx, [bp + 8]
     mov cx, 0
     findNShotMTPlace:
-    mov ax, [bx]
+    mov ax, [word bx]
     cmp ax, 0
     je createTheNshot
     add bx, 2
@@ -1754,12 +1832,15 @@ PROC createANShot
 
     createTheNshot:
     mov ax, [bp + 4]
+    add ax, 10
     mov [word bx], ax
 
     mov bx, [bp + 10]
+    shl cx, 1
     add bx, cx
+    xor ax, ax
     mov ax, [bp + 6]
-    mov [bx], al    ;?
+    mov [word bx], ax    ;?
     
 
     pop cx
@@ -1770,7 +1851,7 @@ PROC createANShot
 ENDP createANShot
 
 
-;get: offset ninjas, offset balloons
+;get: offset ninjas, offset balloons, offset NShots1, offset NShots2
 PROC checkNinjasRadios
     push bp
     mov bp, sp
@@ -1786,20 +1867,22 @@ PROC checkNinjasRadios
     push bx
 
     xor ax, ax
-    mov ax, [word bx]
+    mov ax, [word bx]   ; ninja place
     cmp ax, 0
     jne startballonsloop
     jmp AllNinjasChecked
 
     startballonsloop:
 
-    mov di, [bp + 6]    ; offset balloons
-    mov cx, 100
+    mov cx, 0
     loopcheckballoonsIn:
     push bx
     push cx
 
-    mov ax, [di]
+    mov di, [bp + 6]    ; offset balloons
+    add di, cx
+
+    mov ax, [word di]
     cmp ax, 0
     je notInRadios
 
@@ -1811,14 +1894,16 @@ PROC checkNinjasRadios
     div cx          ; ax = y, dx = x;
 
     and ax, 0ffh
-
-    ; cmp ax, 0c8h    ;200
-    ; jl YpossisionGood1
-    ; and ax, 0ffh
-    ; YpossisionGood1:
+    and dx, 1ffh
 
     mov bx, dx ; x
+    mov [Helper], 0
     mov [Helper], ax ; y
+
+    pop cx
+    mov di, [bp + 6]    ; offset balloons
+    add di, cx
+    push cx
     
     mov ax, [word di]
     add ax, 1924    ; the amount that gives the exact middle of the Balloon
@@ -1828,53 +1913,51 @@ PROC checkNinjasRadios
     div cx          ; ax = y, dx = x;
 
     and ax, 0ffh
+    and dx, 1ffh
 
     ; check radios
-    sub dx, bx
-    mov bx, dx
-    sub ax, [Helper]
-
-    mov cx, ax
-    mul cx      ; ax = ax^2
-
-    mov [Helper], ax
-
-    mov cx, bx
-    mov ax, bx
-    mul cx      ; ax = bx^2
-
-    add ax, [Helper]
-    
-    cmp ax, 0    
-    jl notInRadios
-
-    cmp ax, 900     ; 30 * 30 when 30 = radios
+    add bx, 30   ; half radios when radios = 60
+    cmp dx, bx
     jg notInRadios
 
+    sub bx, 60  ; radios
+    cmp dx, bx
+    jb notInRadios
+
+    mov bx, [Helper]
+    add bx, 30   ; half radios when radios = 60
+    cmp ax, bx
+    jg notInRadios
+
+    sub bx, 60  ; radios
+    cmp ax, bx
+    jb notInRadios
+
+    
     ; In Radios
-    pop cx
-    mov dx, 100
-    sub dx, cx      ; baloon number in array
+    pop cx      ; baloon number in array * 2
+    mov dx, cx
     pop bx
     mov ax, [word bx]    ; place of ninja
 
     push bx
-    xor cx, cx
+    mov cx, 100
     push cx
 
-    push offset NShots2
-    push offset NShots1
+
+    push [bp + 10]
+    push [bp + 8]
     push dx
     push ax
     call createANShot
 
     
     notInRadios:
-    add di, 2
     pop cx
+    add cx, 2
     pop bx
-    cmp cx, 0
-    je endBalloonCheckLoop
+    cmp cx, 100
+    jge endBalloonCheckLoop
     jmp loopcheckballoonsIn
 
     endBalloonCheckLoop:
@@ -1893,11 +1976,559 @@ PROC checkNinjasRadios
     pop bx
     pop ax
     pop bp
-    ret 4
+    ret 8
 ENDP checkNinjasRadios
 
 
-;get offset NShots1
+
+;get: shot place, offset balloons
+PROC cmpShotToBalloonW
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+    push di
+    
+
+    mov cx, 0
+    loopCheckBalloonsHit:
+    push cx
+
+    mov ax, [bp + 4]
+    add ax, 1605    ; the amount that gives the exact middle of the WShot
+
+    xor dx, dx
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    and ax, 0ffh
+    and dx, 1ffh
+
+    mov bx, dx ; x
+    mov [Helper], ax ; y
+    
+    pop cx
+    mov di, [bp + 6]
+    add di, cx
+    push cx
+    mov ax, [word di]
+    add ax, 1924    ; the amount that gives the exact middle of the Balloon
+
+    xor dx, dx
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    and ax, 0ffh
+    and dx, 1ffh
+
+    ; check radios
+    add bx, 8   ; half gap when gap = 16
+    cmp dx, bx
+    jg notPoping1
+
+    sub bx, 16  ; gap
+    cmp dx, bx
+    jl notPoping1
+
+    add [Helper], 8   ; half gap when gap = 16
+    cmp ax, [Helper]
+    jg notPoping1
+
+    sub [Helper], 16  ; gap
+    cmp ax, [Helper]
+    jl notPoping1
+
+    ; In Radios
+    mov ax, "$"
+    mov [bp + 6], ax
+
+    pop cx
+    mov [bp + 4], cx
+    jmp notPoping2
+
+    notPoping1:
+    pop cx
+    add cx, 2
+    cmp cx, 100
+    jg notPoping2
+    jmp loopCheckBalloonsHit
+
+    notPoping2:
+
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret
+ENDP cmpShotToBalloonW
+
+
+;get: shot place, shot vector
+PROC WShotToGo
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+    
+    mov ax, [bp + 4]
+    mov [Helper], ax
+
+    mov bx, [bp + 6]    ; bl = x pixels, bh = y pixels
+
+    cmp bl, 01111111b   ; below 10000000
+    jb PlusX1
+
+    xor cx, cx
+    mov cl, bl
+    and cl, 01111111b
+
+    sub [Helper], cx
+
+    cmp bh, 01111111b   ; below 10000000
+    jb PlusY1
+
+    xor cx, cx
+    mov cl, bh
+    and cl, 01111111b
+    mov ax, 320
+    mul cx
+
+    sub [Helper], ax
+    jmp FoundWShotNewPlace
+
+    PlusX1:
+    xor cx, cx
+    mov cl, bl
+
+    add [Helper], cx
+
+    cmp bh, 01111111b   ; below 10000000
+    jb PlusY1
+
+    xor cx, cx
+    mov cl, bh
+    and cl, 01111111b
+    mov ax, 320
+    mul cx
+
+    add [Helper], ax
+    jmp FoundWShotNewPlace
+    PlusY1:
+    xor cx, cx
+    mov cl, bh
+    mov ax, 320
+    mul cx
+
+    add [Helper], ax
+
+    FoundWShotNewPlace:
+    mov ax, [Helper]
+    push ax
+    call CheckScreenLimits
+    pop ax
+    mov [bp + 6], ax
+
+    cmp ax, 0
+    jne finishdam
+    mov [bp + 4], ax
+
+    finishdam:
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret 2
+ENDP WShotToGo
+
+
+
+;get: shot place
+PROC CheckScreenLimits
+    push bp
+    mov bp, sp
+    push ax
+    push cx
+    push dx
+
+    mov ax, [bp + 4]
+    mov cx, 320
+    div cx      ; ax = y, dx = x
+
+    and ax, 0ffh
+    and dx, 1ffh
+
+    cmp ax, 4
+    jb killShot
+
+    cmp ax, 195
+    jg killShot
+
+    cmp dx, 4
+    jb killShot
+
+    cmp dx, 270
+    jg killShot
+
+    jmp ShotIsOK
+
+    killShot:
+    mov ax, 0
+    mov [bp + 4], ax
+
+    ShotIsOK:
+
+    pop dx
+    pop cx
+    pop ax
+    pop bp
+    ret
+ENDP CheckScreenLimits
+
+
+;get: shot place, balloon place
+PROC findWShotVector
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+
+
+    mov ax, [bp + 6]    ; baloon place
+    cmp ax, 0
+    jne BalloonIsExist1
+
+    mov ax, 0
+    mov [bp + 4], ax
+    jmp WShotPlaceFound
+
+    BalloonIsExist1:
+    add ax, 1924
+
+    xor dx, dx
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    and ax, 0ffh    ; 200
+    and dx, 1ffh
+
+    mov bx, dx ; x
+    mov [Helper], ax ; y
+    
+    mov ax, [bp + 4]    ; shot place
+    add ax, 1605
+    xor dx, dx
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    and ax, 0ffh
+    and dx, 1ffh
+
+    ; check vector
+    cmp bx, dx
+    jge keepCheck1Vector1
+
+    sub dx, bx          ; x
+    mov bx, dx
+    
+    cmp ax, [Helper]
+    jle keepCheck1Vector2
+    ; -- balloon place to shot place
+    sub ax, [Helper]    ; y
+
+    xor cx, cx
+
+    add ax, bx  ; x + y
+    mov cx, ax
+    shl bx, 3   ; x * 8
+    mov ax, bx
+
+    div cl      ; al = 8x / x + y
+    mov [x3], al
+
+    mov [y3], 8
+    sub [y3], al
+
+    or [y3], 10000000b
+    or [x3], 10000000b
+
+    mov dl, [x3]
+    mov dh, [y3]
+
+    jmp WShotPlaceFound
+
+    keepCheck1Vector2:
+    ; -+ balloon place to shot place
+    sub [Helper], ax
+    mov ax, [Helper]    ; y
+
+    xor cx, cx
+
+    add ax, bx  ; x + y
+    mov cx, ax
+    shl bx, 3   ; x * 8
+    mov ax, bx
+
+    div cl      ; al = 8x / x + y
+    mov [x3], al
+
+    mov [y3], 8
+    sub [y3], al
+
+    or [x3], 10000000b
+
+    mov dl, [x3]
+    mov dh, [y3]
+
+    jmp WShotPlaceFound
+
+    keepCheck1Vector1:
+    sub bx, dx          ; x
+
+    cmp ax, [Helper]
+    jle keepCheck1Vector3
+    ; +- balloon place to shot place
+    sub ax, [Helper]    ; y
+
+    xor cx, cx
+
+    add ax, bx  ; x + y
+    mov cx, ax
+    shl bx, 3   ; x * 8
+    mov ax, bx
+
+    div cl      ; al = 8x / x + y
+    mov [x3], al
+
+    mov [y3], 8
+    sub [y3], al
+
+    or [y3], 10000000b
+
+    mov dl, [x3]
+    mov dh, [y3]
+
+    jmp shurikenPlaceFound
+
+    keepCheck1Vector3:
+    ; ++ balloon place to shot place
+    sub [Helper], ax
+    mov ax, [Helper]    ; y
+
+    xor cx, cx
+
+    add ax, bx  ; x + y
+    mov cx, ax
+    shl bx, 3   ; x * 8
+    mov ax, bx
+
+    div cl      ; al = 8x / x + y
+    mov [x3], al
+
+    mov [y3], 8
+    sub [y3], al
+
+    mov dl, [x3]
+    mov dh, [y3]
+
+    WShotPlaceFound:
+    mov [bp + 6], dx
+
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret 2
+ENDP findWShotVector
+
+
+;get: place of shot, balloon place, offset WShots1, offset WShots2
+PROC createAWShot
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    
+
+    mov bx, [bp + 8]
+    mov cx, 0
+    findWShotMTPlace:
+    mov ax, [word bx]
+    cmp ax, 0
+    je createTheWshot
+    add bx, 2
+    add cx, 2
+    jmp findWShotMTPlace
+
+    createTheWshot:
+    mov ax, [bp + 4]
+    add ax, 10
+    mov [word bx], ax
+
+    mov bx, [bp + 10]
+    add bx, cx
+    
+    push [bp + 6]
+    push [bp + 4]
+    call findWShotVector
+    pop ax
+
+    mov [word bx], ax    ;?
+    
+
+    pop cx
+    pop bx
+    pop ax
+    pop bx
+    ret 8
+ENDP createAWShot
+
+
+;get: offset wizards, offset balloons, offset WShots1, offset WShots2
+PROC checkWizardsRadios
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+    push di
+    
+
+    mov bx, [bp + 4]    ; offset wizards
+    loopWizardsRadios:
+    push bx
+
+    xor ax, ax
+    mov ax, [word bx]   ; wizard place
+    cmp ax, 0
+    jne startballonsloop1
+    jmp AllWizardsChecked
+
+    startballonsloop1:
+
+    mov cx, 0
+    loopcheckballoonsIn1:
+    push bx
+    push cx
+
+    mov di, [bp + 6]    ; offset balloons
+    add di, cx
+
+    mov ax, [word di]
+    cmp ax, 0
+    je notInRadios1
+
+    mov ax, [word bx]
+    add ax, 3210    ; the amount that gives the exact middle of the charecter
+
+    xor dx, dx
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    and ax, 0ffh
+    and dx, 1ffh
+
+    mov bx, dx ; x
+    mov [Helper], 0
+    mov [Helper], ax ; y
+
+    pop cx
+    mov di, [bp + 6]    ; offset balloons
+    add di, cx
+    push cx
+    
+    mov ax, [word di]
+    add ax, 1924    ; the amount that gives the exact middle of the Balloon
+
+    xor dx, dx
+    mov cx, 320
+    div cx          ; ax = y, dx = x;
+
+    and ax, 0ffh
+    and dx, 1ffh
+
+    ; check radios
+    add bx, 30   ; half radios when radios = 60
+    cmp dx, bx
+    jg notInRadios1
+
+    sub bx, 60  ; radios
+    cmp dx, bx
+    jb notInRadios1
+
+    mov bx, [Helper]
+    add bx, 30   ; half radios when radios = 60
+    cmp ax, bx
+    jg notInRadios1
+
+    sub bx, 60  ; radios
+    cmp ax, bx
+    jb notInRadios1
+
+    
+    ; In Radios
+    pop cx      ; baloon number in array * 2
+    mov dx, cx
+    mov di, [bp + 6]    ; offset balloons
+    add di, dx
+    mov dx, [word di]   ; balloon place
+    pop bx
+    mov ax, [word bx]   ; place of wizard
+
+    push bx
+    mov cx, 100
+    push cx
+
+
+    push [bp + 10]
+    push [bp + 8]
+    push dx
+    push ax
+    call createAWShot
+
+    
+    notInRadios1:
+    pop cx
+    add cx, 2
+    pop bx
+    cmp cx, 100
+    jge endBalloonCheckLoop1
+    jmp loopcheckballoonsIn1
+
+    endBalloonCheckLoop1:
+
+    pop bx
+    add bx, 2
+    jmp loopWizardsRadios
+
+    push bx
+    AllWizardsChecked:
+    pop bx
+
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret 8
+ENDP checkWizardsRadios
+
+
+;get offset NShots1, offset WShots1
 PROC PrintAllNShots
     push bp
     mov bp, sp
@@ -1922,12 +2553,29 @@ PROC PrintAllNShots
     add bx, 2
     loop loopPrintNShot
 
+    mov bx, [bp + 6]
+    mov cx, 50
+
+    loopPrintWShot:
+    mov ax, [word bx]
+    cmp ax, 0
+    je WShotIsNotOnScreen
+
+    push ax
+    push offset wizardShot
+    call PrintCharecter
+
+    WShotIsNotOnScreen:
+
+    add bx, 2
+    loop loopPrintWShot
+
     
     pop cx
     pop bx
     pop ax
     pop bp
-    ret 2
+    ret 4
 ENDP PrintAllNShots
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2049,6 +2697,7 @@ PROC PrintAllTOSeg
     push offset balloons
     call PrintAllballoons
 
+    push offset WShots1
     push offset NShots1
     call PrintAllNShots
 
@@ -2257,16 +2906,22 @@ pop ax
 
 mov bx, "$"
 cmp ax, bx
-jne keepMain
+je timepass
+jmp keepMain
+timepass:
 call handelballoons
 call handelballoons
 
-
+push offset WShots2
+push offset WShots1
+push offset NShots2
+push offset NShots1
+push offset balloons
 call handleShots
 
 inc [counter1]
 
-cmp [counter1], 74 ; 4 sec ; 19 (ticks per sec) * 4
+cmp [counter1], 19 ; 1 sec ; 19 (ticks per sec)
 jl keepMain
 
 call moneytimecount
@@ -2280,9 +2935,19 @@ inc [counter2]
 cmp [counter2], 2
 jl keepMain
 
+push offset NShots2
+push offset NShots1
 push offset balloons
 push offset ninjas
 call checkNinjasRadios
+
+push offset WShots2
+push offset WShots1
+push offset balloons
+push offset wizards
+call checkWizardsRadios
+
+call FirstPrintAll
 
 mov [counter2], 0
 
