@@ -1780,19 +1780,19 @@ PROC cmpShotToBalloon
     and dx, 1ffh
 
     ; check radios
-    add bx, 8   ; half gap when gap = 16
+    add bx, 10   ; half gap when gap = 16
     cmp dx, bx
     jg notPoping
 
-    sub bx, 16  ; gap
+    sub bx, 20  ; gap
     cmp dx, bx
     jl notPoping
 
-    add [Helper], 8   ; half gap when gap = 16
+    add [Helper], 10   ; half gap when gap = 16
     cmp ax, [Helper]
     jg notPoping
 
-    sub [Helper], 16  ; gap
+    sub [Helper], 20  ; gap
     cmp ax, [Helper]
     jl notPoping
 
