@@ -11,6 +11,8 @@ segment buildScreen public
 ends buildScreen
 
 DATASEG
+lives       db 5
+round       db 1
 
 timehundreth    db 0
 timesec     db 0
@@ -19,9 +21,9 @@ timemin     db 0
 balloons     dw 200 dup(00)
 
 money       dw 250 ; money amount that player have now
-echo        dw 100 ; echo
+echo        dw 50 ; echo
 
-wizardCost  dw 120
+wizardCost  dw 180
 ninjaCost   dw 150
 
 ninjas      dw 255 dup(00), 0 ; ninja places beckend
@@ -63,6 +65,8 @@ width       dw 320
 counter1    db 0
 counter2    db 0
 counter3    db 0
+counter4    db 0
+counter5    db 0
 
 balloonsOnScreen db 0
 
@@ -896,6 +900,7 @@ PROC BalloonToGo
     jl keepRightB
 
     mov cx, 0
+    dec [lives]
     jmp placeChanged
 
 
@@ -942,6 +947,8 @@ PROC PopBalloon
     mov [word bx], 0
 
     dec [balloonsOnScreen]
+
+    add [money], 1  ; per balloon
     
     pop cx
     pop bx
@@ -2117,7 +2124,7 @@ PROC WShotToGo
     mov ax, 320
     mul cx
 
-    add [Helper], ax
+    sub [Helper], ax
     jmp FoundWShotNewPlace
     PlusY1:
     xor cx, cx
@@ -2888,15 +2895,15 @@ mov [timehundreth], dl
 
 call FirstPrintAll
 
-push offset balloons
-call createRedballoon
-
 call PrintAllTOSeg
 call startMouse
 
 call screenToScreen
 
+mov cx, 10
 main:
+push cx
+
 call PrintAllTOSeg
 call chackPressed
 
@@ -2912,6 +2919,10 @@ timepass:
 call handelballoons
 call handelballoons
 
+cmp [round], 5
+jb keepHendleSht
+call handelballoons
+keepHendleSht:
 push offset WShots2
 push offset WShots1
 push offset NShots2
@@ -2920,20 +2931,47 @@ push offset balloons
 call handleShots
 
 inc [counter1]
+inc [counter5]
 
-cmp [counter1], 19 ; 1 sec ; 19 (ticks per sec)
-jl keepMain
+cmp [counter5], 8
+jb cmpForOneSec
 
-call moneytimecount
+pop cx
+mov bx, cx
+push cx
+cmp bx, 0
+je cmpForOneSec
 push offset balloons
 call createRedballoon
+
+pop cx
+dec cx
+push cx
+
+mov [counter5], 0
+
+cmpForOneSec:
+cmp [counter1], 19 ; 1 sec ; 19 (ticks per sec)
+jl CheckMoreThanOneSec
 
 mov [counter1], 0
 
 inc [counter2]
+inc [counter3]
+inc [counter4]
 
-cmp [counter2], 2
-jl keepMain
+CheckMoreThanOneSec:
+cmp [counter3], 5   ; 5 sec
+jb CheckIfShot
+
+call moneytimecount
+mov [counter3], 0
+
+call FirstPrintAll
+
+CheckIfShot:
+cmp [counter2], 2   ; 2 sec
+jb RestartRound
 
 push offset NShots2
 push offset NShots1
@@ -2947,15 +2985,34 @@ push offset balloons
 push offset wizards
 call checkWizardsRadios
 
-call FirstPrintAll
 
 mov [counter2], 0
+
+RestartRound:
+
+cmp [counter4], 20  ; per round
+jb keepMain
+inc [round]
+
+pop cx
+mov cx, 10
+xor ax, ax
+mov al, [round]
+shl ax, 2
+add cx, ax
+push cx
+
+mov [counter4], 0
 
 keepMain:
 call screenToScreen
 
+cmp [lives], 0
+je endGame
+pop cx
 jmp main
 
+endGame:
 ; Wait for key press
 mov ah,1
 
