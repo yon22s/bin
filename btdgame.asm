@@ -11,6 +11,8 @@ segment buildScreen public
 ends buildScreen
 
 DATASEG
+white       equ 15
+
 lives       db 5
 round       db 1
 
@@ -67,6 +69,9 @@ counter2    db 0
 counter3    db 0
 counter4    db 0
 counter5    db 0
+counter6    db 0
+
+textPlace   dw 0
 
 balloonsOnScreen db 0
 
@@ -84,6 +89,100 @@ y3          db 0
 
 Helper      dw 0
 
+
+
+num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
+			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
+			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
+			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
+			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
+			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
+			db 't', 't', 0 , 0 , 0 , 't', 't', 's'
+
+	num1 	db 't', 't', 't', 0, 't', 't', 't', 'n'
+			db 't', 't', 0 , 0 , 't', 't', 't', 'n'
+			db 't', 't', 't', 0, 't', 't', 't', 'n'
+			db 't', 't', 't', 0, 't', 't', 't', 'n'
+			db 't', 't', 't', 0, 't', 't', 't', 'n'
+			db 't', 't', 't', 0, 't', 't', 't', 'n'
+			db 't', 't', 0 , 0, 0 , 't', 't', 's'
+
+	num2	db 't', 't', 0, 0, 0, 't', 't', 'n'
+			db 't', 0, 't', 't', 't', 0, 't', 'n'
+			db 't', 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 't', 't', 't', 0, 't', 't', 'n'
+			db 't', 't', 't', 0, 't', 't', 't', 'n'
+			db 't', 't', 0, 't', 't', 't', 't', 'n'
+			db 't', 0 , 0 , 0 , 0 , 0 , 't', 's'
+
+	num3	db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
+			db 't', 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
+			db 't', 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 0 , 0 , 0 , 0 , 't', 't', 's'
+
+	num4 	db 't', 't', 't', 0, 0, 't', 't', 'n'
+			db 't', 't', 0, 't', 0, 't', 't', 'n'
+			db 't', 0, 't', 't', 0, 't', 't', 'n'
+			db 0, 't', 't', 't', 0, 't', 't', 'n'
+			db 0 , 0 , 0 , 0 , 0 , 0 , 't', 'n'
+			db 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 't', 't', 't', 0,'t', 's'
+	
+	num5 	db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
+			db 't', 0, 't', 't', 't', 't', 't', 'n'
+			db 't', 0, 't', 't', 't', 't', 't', 'n'
+			db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
+			db 't', 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 0 , 0 , 0 , 0 , 't', 't', 's'
+
+	num6 	db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
+			db 't', 0, 't', 't', 't', 't', 't', 'n'
+			db 't', 0, 't', 't', 't', 't', 't', 'n'
+			db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
+			db 't', 0, 't', 't', 't', 0 , 't', 'n'
+			db 't', 0, 't', 't', 't', 0 , 't', 'n'
+			db 't', 0 , 0 , 0 , 0 , 0 , 't', 's'
+	
+	num7	db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
+			db 't', 't', 't', 't', 0 , 't', 't', 'n'
+			db 't', 't', 't', 't', 0 , 't', 't', 'n'
+			db 't', 't', 0 , 0 , 0 , 0 , 't', 'n'
+			db 't', 't', 't', 't', 0 , 't', 't', 'n'
+			db 't', 't', 't', 't', 0 , 't', 't', 'n'
+			db 't', 't', 't', 't', 0 , 't', 't', 's'
+	
+	num8 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
+			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
+			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
+			db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
+			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
+			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
+			db 't', 't', 0 , 0 , 0 , 't', 't', 's'
+
+	num9	db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
+			db 't', 0, 't', 't', 't', 0 , 't', 'n'
+			db 't', 0, 't', 't', 't', 0 , 't', 'n'
+			db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
+			db 't', 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 't', 't', 't', 't', 0, 't', 'n'
+			db 't', 0 , 0 , 0 , 0 , 0 , 't', 's'
+	
+	num10	db 't', 0, 't', 't', 0, 0, 't', 'n'
+			db  0 , 0, 't', 0 ,'t', 't', 0 , 'n'
+			db 't', 0, 't', 0 ,'t', 't', 0 , 'n'
+			db 't', 0, 't', 0 ,'t', 't', 0 , 'n'
+			db 't', 0, 't', 0 ,'t', 't', 0 , 'n'
+			db 't', 0, 't', 0 ,'t', 't', 0 , 'n'
+			db  0 , 0 , 0 , 't', 0 , 0 , 't', 's'
+
+
+
+
+
 CODESEG
 
 proc delay
@@ -91,7 +190,7 @@ proc delay
 	mov cx, 0ffffh
     outer_loop:
 	push cx
-	mov cx, 150
+	mov cx, 300
     inner_loop:
 	loop inner_loop
 	pop cx
@@ -99,7 +198,6 @@ proc delay
 	pop cx
 	ret
 endp delay
-
 
 
 PROC pixelcolor
@@ -114,6 +212,190 @@ PROC pixelcolor
     ret
 ENDP pixelcolor
 
+
+; draw the graphic in a color at poristion
+; get: place, num
+PROC draw_Graphic
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+	
+    xor ax, ax
+    mov ax, [bp + 6]    ; num
+    xor ah, ah
+    mov bx, [bp + 4]    ; place
+	
+    add al, "1"
+    mov ah, 36
+	mov [word es:bx], ax
+	; draw_Pixel:
+	; 	mov al, [byte ptr bx] ;;check current graphic data and act by it
+	; 	cmp al, 'n' ;;n=enter line
+	; 	JE enter_Line
+	; 	cmp al, 's' ;; s = stop drawing
+	; 	JE stop_Draw
+	;     cmp al, 't' ;;t = transperent pixel
+	; 	JE skip
+    ;     xor ax, ax
+	; 	mov al, 15   ; color
+    ;     mov ah, 0ch
+	; 	int 10h
+	; 	inc bx
+	; 	inc cx
+	; 	JMP draw_Pixel
+	; skip:
+	; 	inc bx
+	; 	inc cx
+	; 	JMP draw_Pixel
+	; enter_Line:
+    ;     mov cx, [bp + 4]    ; x
+	; 	inc dx
+	; 	inc bx
+	; 	JMP draw_Pixel
+	; stop_Draw:
+
+        pop bx
+        pop ax
+        pop bp
+		ret 4
+ENDP draw_Graphic
+
+; get: num
+; give: offset num_x
+PROC find_Graphic
+    push bp
+    mov bp, sp
+    push ax
+		mov ax, [bp + 4]
+
+		cmp ax, 0
+		JNE not_0
+        mov ax, offset num0
+		mov [bp + 4], ax
+		JMP draw_Num1
+	not_0:
+		cmp ax, 1
+		JNE not_1
+		mov ax, offset num1
+		mov [bp + 4], ax
+		JMP draw_Num1
+	not_1:
+		cmp ax, 2
+		JNE not_2
+		mov ax, offset num2
+		mov [bp + 4], ax
+		JMP draw_Num1
+	not_2:
+		cmp ax, 3
+		JNE not_3
+		mov ax, offset num3
+		mov [bp + 4], ax
+		JMP draw_Num1
+	not_3:
+		cmp ax, 4
+		JNE not_4
+		mov ax, offset num4
+		mov [bp + 4], ax
+		JMP draw_Num1
+	not_4:
+	 	cmp ax, 5
+	 	JNE not_5
+		mov ax, offset num5
+		mov [bp + 4], ax
+	 	JMP draw_Num1
+	 not_5:
+		cmp ax, 6
+		JNE not_6
+	 	mov ax, offset num6
+		mov [bp + 4], ax
+    	JMP draw_Num1
+	not_6:
+		cmp ax, 7
+		JNE not_7
+		mov ax, offset num7
+		mov [bp + 4], ax
+		JMP draw_Num1
+	not_7:
+		cmp ax, 8
+		JNE not_8
+		mov ax, offset num8
+		mov [bp + 4], ax
+		JMP draw_Num1
+	not_8:
+		cmp ax, 9
+		JNE draw_Num1
+		mov ax, offset num9
+		mov [bp + 4], ax
+	draw_Num1:
+
+    pop ax
+    pop bp
+	ret
+ENDP find_Graphic
+
+; get: num, [textPlace] = place
+; print number at the right possion
+PROC print_Number
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+	
+    mov ax, [bp + 4]
+
+	mov bl, 100
+	div bl      ; 100 / num --> al = handreds, ah = rest
+	push ax
+	xor ah, ah
+
+	; push ax
+	; call find_Graphic
+    ; pop ax
+
+    push ax
+    push [textPlace]
+	call draw_Graphic
+    add [textPlace], 1
+
+	pop ax
+	mov al, ah
+	xor ah, ah
+	mov bl, 10
+	div bl      ; 10 / num --> al = dozens, ah = units
+	push ax
+	xor ah, ah
+
+	; push ax
+	; call find_Graphic
+    ; pop ax
+
+    push ax
+    push [textPlace]
+	call draw_Graphic
+    add [textPlace], 1
+
+	pop ax
+	mov al, ah
+	xor ah, ah
+	
+	; push ax
+	; call find_Graphic
+    ; pop ax
+
+    push ax
+    push [textPlace]
+	call draw_Graphic
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+	ret 2
+ENDP print_Number
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                                                                                ;
@@ -964,6 +1246,7 @@ PROC createRedballoon
     mov bp, sp
     push ax
     push bx
+    push cx
 
     mov bx, [bp + 4]
 
@@ -979,6 +1262,7 @@ PROC createRedballoon
 
     inc [balloonsOnScreen]
     
+    pop cx
     pop bx
     pop ax
     pop bp
@@ -2616,6 +2900,26 @@ ENDP PrintCharecter
 
 
 
+; ;description
+PROC printMoney
+    push ax
+
+    mov [textPlace], 2700  ; 45 * 60
+    xor ax, ax
+    mov ax, [money]
+    push ax
+    call print_Number
+
+    ; mov [textX], 275
+    ; mov [textY], 190
+    ; mov ax, [echo]
+    ; push ax
+    ; call print_Number
+
+    pop ax
+ENDP printMoney
+
+
 ;get offset ninjas
 PROC printAllNinjas
     push bp
@@ -2707,6 +3011,8 @@ PROC PrintAllTOSeg
     push offset WShots1
     push offset NShots1
     call PrintAllNShots
+
+    call printMoney
 
     pop ax
     pop bp
@@ -2876,6 +3182,157 @@ PROC fiftyMilisecPass
 ENDP fiftyMilisecPass
 
 
+
+;Main Loop Of the game
+PROC MainGG
+    mov cx, 10
+    main:
+    push cx
+
+    call PrintAllTOSeg
+    call chackPressed
+
+    push 0
+    call fiftyMilisecPass
+    pop ax
+
+    mov bx, "$"
+    cmp ax, bx
+    je timepass
+    jmp keepMain
+    timepass:
+    call handelballoons
+    call handelballoons
+
+    cmp [round], 5
+    jb keepHendleSht
+    call handelballoons
+    keepHendleSht:
+    push offset WShots2
+    push offset WShots1
+    push offset NShots2
+    push offset NShots1
+    push offset balloons
+    call handleShots
+
+    inc [counter1]
+    inc [counter5]
+
+    cmp [counter5], 4
+    jb cmpForOneSec
+
+    pop cx
+    mov bx, cx
+    push cx
+    cmp bx, 0
+    je cmpForOneSec
+
+    inc [counter6]
+    mov [counter5], 0
+
+    cmp [round], 8
+    jb cmpCreateABslloon
+    push offset balloons
+    call createRedballoon
+
+    pop cx
+    dec cx
+    push cx
+
+    cmpCreateABslloon:
+
+    cmp [counter6], 2
+    jb cmpForOneSec
+
+    push offset balloons
+    call createRedballoon
+
+    mov [counter6], 0
+
+    pop cx
+    dec cx
+    push cx
+
+
+    cmpForOneSec:
+    cmp [counter1], 19 ; 1 sec ; 19 (ticks per sec)
+    jl CheckMoreThanOneSec
+
+    mov [counter1], 0
+
+    inc [counter2]
+    inc [counter3]
+    inc [counter4]
+
+    CheckMoreThanOneSec:
+    cmp [counter3], 5   ; 5 sec
+    jb CheckIfShot
+
+    call moneytimecount
+    mov [counter3], 0
+
+    call FirstPrintAll
+
+    CheckIfShot:
+    cmp [counter2], 2   ; 2 sec
+    jb RestartRound
+
+    push offset NShots2
+    push offset NShots1
+    push offset balloons
+    push offset ninjas
+    call checkNinjasRadios
+
+    push offset WShots2
+    push offset WShots1
+    push offset balloons
+    push offset wizards
+    call checkWizardsRadios
+
+
+    mov [counter2], 0
+
+    RestartRound:
+
+    cmp [counter4], 20  ; per round
+    jb keepMain
+    inc [round]
+
+    pop cx
+    mov cx, 10
+    xor ax, ax
+    mov al, [round]
+    shl ax, 2
+    add cx, ax
+    push cx
+
+    mov [counter4], 0
+
+
+    cmp [round], 15
+    jb keepMain
+    pop cx
+    jmp start1
+
+    keepMain:
+    call screenToScreen
+
+    cmp [lives], 0
+    je endGame1
+    pop cx
+    jmp main
+
+    start1:
+    mov cx, 1
+    ret
+
+    endGame1:
+    pop cx
+    mov cx, 0
+    ret
+ENDP MainGG
+
+
 start:
 mov ax, @data
 mov ds, ax
@@ -2900,119 +3357,14 @@ call startMouse
 
 call screenToScreen
 
-mov cx, 10
-main:
-push cx
+call delay
 
-call PrintAllTOSeg
-call chackPressed
+startGame:
+call MainGG
+cmp cx, 1
+je start        ; victory screen
 
-push 0
-call fiftyMilisecPass
-pop ax
-
-mov bx, "$"
-cmp ax, bx
-je timepass
-jmp keepMain
-timepass:
-call handelballoons
-call handelballoons
-
-cmp [round], 5
-jb keepHendleSht
-call handelballoons
-keepHendleSht:
-push offset WShots2
-push offset WShots1
-push offset NShots2
-push offset NShots1
-push offset balloons
-call handleShots
-
-inc [counter1]
-inc [counter5]
-
-cmp [counter5], 8
-jb cmpForOneSec
-
-pop cx
-mov bx, cx
-push cx
-cmp bx, 0
-je cmpForOneSec
-push offset balloons
-call createRedballoon
-
-pop cx
-dec cx
-push cx
-
-mov [counter5], 0
-
-cmpForOneSec:
-cmp [counter1], 19 ; 1 sec ; 19 (ticks per sec)
-jl CheckMoreThanOneSec
-
-mov [counter1], 0
-
-inc [counter2]
-inc [counter3]
-inc [counter4]
-
-CheckMoreThanOneSec:
-cmp [counter3], 5   ; 5 sec
-jb CheckIfShot
-
-call moneytimecount
-mov [counter3], 0
-
-call FirstPrintAll
-
-CheckIfShot:
-cmp [counter2], 2   ; 2 sec
-jb RestartRound
-
-push offset NShots2
-push offset NShots1
-push offset balloons
-push offset ninjas
-call checkNinjasRadios
-
-push offset WShots2
-push offset WShots1
-push offset balloons
-push offset wizards
-call checkWizardsRadios
-
-
-mov [counter2], 0
-
-RestartRound:
-
-cmp [counter4], 20  ; per round
-jb keepMain
-inc [round]
-
-pop cx
-mov cx, 10
-xor ax, ax
-mov al, [round]
-shl ax, 2
-add cx, ax
-push cx
-
-mov [counter4], 0
-
-keepMain:
-call screenToScreen
-
-cmp [lives], 0
-je endGame
-pop cx
-jmp main
-
-endGame:
+endGame:        ; lose screen
 ; Wait for key press
 mov ah,1
 
