@@ -780,7 +780,7 @@ ENDP random_gen
 start:
 	mov ax, @data
 	mov ds, ax
-	mov ax, 0b800h
+	mov ax, 0A000h
 	mov es, ax
 ; --------------------------
 ; Your code here
@@ -805,6 +805,15 @@ start:
 	push offset apple
 	push 0
 	call apple_screen
+
+	xor ax, ax
+    mov bx, 2700    ; place
+
+	mov al, 1
+	
+    add al, 48h
+    mov ah, 96
+	mov [word es:bx], ax
 
 	lop:
 	call delay

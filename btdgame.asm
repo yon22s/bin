@@ -2,6 +2,15 @@ IDEAL
 MODEL small
 STACK 100h
 
+
+segment intrScreenSeg public
+    intrScreenSeg1 db 64000 dup (00)
+ends intrScreenSeg
+
+segment homeScreenSeg public
+    homeScreenSeg1 db 64000 dup (00)
+ends homeScreenSeg
+
 segment beckgroundseg public
     beckgroundseg1 db 64000 dup (00)
 ends beckgroundseg
@@ -11,7 +20,7 @@ segment buildScreen public
 ends buildScreen
 
 DATASEG
-white       equ 15
+black       equ 0
 
 lives       db 5
 round       db 1
@@ -20,13 +29,13 @@ timehundreth    db 0
 timesec     db 0
 timemin     db 0
 
-balloons     dw 200 dup(00)
+balloons    dw 200 dup(00)
 
 money       dw 250 ; money amount that player have now
 echo        dw 50 ; echo
 
 wizardCost  dw 180
-ninjaCost   dw 150
+ninjaCost   dw 120
 
 ninjas      dw 255 dup(00), 0 ; ninja places beckend
 wizards     dw 255 dup(00), 0 ; wizard places beckend
@@ -38,12 +47,15 @@ WShots1     dw 50 dup(00)
 WShots2     dw 50 dup(00)
 
 
-stillPressedninja db 0
-stillPressedwizard db 0
+stillPressedninja   db 0
+stillPressedwizard  db 0
+stillPressedecho    db 0
 
 filename    db 'btdspic.bmp', 0
 filename1   db 'ninjabtd.bmp', 0
 filename2   db 'wizarbtd.bmp', 0
+fileHome    db 'homesc.bmp', 0
+fileIntr    db 'intrsc.bmp', 0
 
 ninja       db 400 dup(0)
 wizard      db 400 dup(0)
@@ -71,7 +83,8 @@ counter4    db 0
 counter5    db 0
 counter6    db 0
 
-textPlace   dw 0
+textX		dw 0
+textY		dw 0
 
 balloonsOnScreen db 0
 
@@ -91,7 +104,7 @@ Helper      dw 0
 
 
 
-num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
+num0 	    db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
 			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
 			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
@@ -99,7 +112,7 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
 			db 't', 't', 0 , 0 , 0 , 't', 't', 's'
 
-	num1 	db 't', 't', 't', 0, 't', 't', 't', 'n'
+num1 	    db 't', 't', 't', 0, 't', 't', 't', 'n'
 			db 't', 't', 0 , 0 , 't', 't', 't', 'n'
 			db 't', 't', 't', 0, 't', 't', 't', 'n'
 			db 't', 't', 't', 0, 't', 't', 't', 'n'
@@ -107,7 +120,7 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 't', 't', 0, 't', 't', 't', 'n'
 			db 't', 't', 0 , 0, 0 , 't', 't', 's'
 
-	num2	db 't', 't', 0, 0, 0, 't', 't', 'n'
+num2	    db 't', 't', 0, 0, 0, 't', 't', 'n'
 			db 't', 0, 't', 't', 't', 0, 't', 'n'
 			db 't', 't', 't', 't', 't', 0, 't', 'n'
 			db 't', 't', 't', 't', 0, 't', 't', 'n'
@@ -115,7 +128,7 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 't', 0, 't', 't', 't', 't', 'n'
 			db 't', 0 , 0 , 0 , 0 , 0 , 't', 's'
 
-	num3	db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
+num3	    db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 't', 't', 't', 't', 0, 't', 'n'
 			db 't', 't', 't', 't', 't', 0, 't', 'n'
 			db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
@@ -123,7 +136,7 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 't', 't', 't', 't', 0, 't', 'n'
 			db 't', 0 , 0 , 0 , 0 , 't', 't', 's'
 
-	num4 	db 't', 't', 't', 0, 0, 't', 't', 'n'
+num4    	db 't', 't', 't', 0, 0, 't', 't', 'n'
 			db 't', 't', 0, 't', 0, 't', 't', 'n'
 			db 't', 0, 't', 't', 0, 't', 't', 'n'
 			db 0, 't', 't', 't', 0, 't', 't', 'n'
@@ -131,7 +144,7 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 't', 't', 't', 0, 't', 'n'
 			db 't', 't', 't', 't', 0,'t', 's'
 	
-	num5 	db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
+num5 	    db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
 			db 't', 0, 't', 't', 't', 't', 't', 'n'
 			db 't', 0, 't', 't', 't', 't', 't', 'n'
 			db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
@@ -139,7 +152,7 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 't', 't', 't', 't', 0, 't', 'n'
 			db 't', 0 , 0 , 0 , 0 , 't', 't', 's'
 
-	num6 	db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
+num6 	    db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
 			db 't', 0, 't', 't', 't', 't', 't', 'n'
 			db 't', 0, 't', 't', 't', 't', 't', 'n'
 			db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
@@ -147,7 +160,7 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 0, 't', 't', 't', 0 , 't', 'n'
 			db 't', 0 , 0 , 0 , 0 , 0 , 't', 's'
 	
-	num7	db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
+num7	    db 't', 0 , 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 't', 't', 't', 0 , 't', 't', 'n'
 			db 't', 't', 't', 't', 0 , 't', 't', 'n'
 			db 't', 't', 0 , 0 , 0 , 0 , 't', 'n'
@@ -155,7 +168,7 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 't', 't', 't', 0 , 't', 't', 'n'
 			db 't', 't', 't', 't', 0 , 't', 't', 's'
 	
-	num8 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
+num8 	    db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
 			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
 			db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
@@ -163,7 +176,7 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 0 , 't', 't', 't', 0 , 't', 'n'
 			db 't', 't', 0 , 0 , 0 , 't', 't', 's'
 
-	num9	db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
+num9	    db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
 			db 't', 0, 't', 't', 't', 0 , 't', 'n'
 			db 't', 0, 't', 't', 't', 0 , 't', 'n'
 			db 't', 0 , 0 , 0 , 0 , 0 , 't', 'n'
@@ -171,17 +184,36 @@ num0 	db 't', 't', 0 , 0 , 0 , 't', 't', 'n'
 			db 't', 't', 't', 't', 't', 0, 't', 'n'
 			db 't', 0 , 0 , 0 , 0 , 0 , 't', 's'
 	
-	num10	db 't', 0, 't', 't', 0, 0, 't', 'n'
+num10	    db 't', 0, 't', 't', 0, 0, 't', 'n'
 			db  0 , 0, 't', 0 ,'t', 't', 0 , 'n'
 			db 't', 0, 't', 0 ,'t', 't', 0 , 'n'
 			db 't', 0, 't', 0 ,'t', 't', 0 , 'n'
 			db 't', 0, 't', 0 ,'t', 't', 0 , 'n'
 			db 't', 0, 't', 0 ,'t', 't', 0 , 'n'
 			db  0 , 0 , 0 , 't', 0 , 0 , 't', 's'
-
-
-
-
+LoseS       db '      _ _ _ _           _ _            _       _     _ _ _ _                   ',10,13
+		    db '     |                 /    \         | \    / |    |                          ',10,13
+		    db '     |                /      \        |  \  /  |    |                          ',10,13
+		    db '     |    _ _        /        \       |   \/   |    |_ _ _ _                   ',10,13
+		    db '     |       |      /-- -- -- -\      |        |    |                          ',10,13
+		    db '     |       |     /            \     |        |    |                          ',10,13
+		    db '     |_ _ _ _|    /              \    |        |    | _ _ _                   ',10,13
+		    db '                                                                               ',10,13
+            db '                          _ _ _ _ _                      _ _ _       _ _ _     ',10,13
+		    db '                         |         |    \          /    |           |     |    ',10,13
+		    db '                         |         |     \        /     |           |     |    ',10,13
+		    db '                         |         |      \      /      |_ _ _      |_ _ _|    ',10,13
+		    db '                         |         |       \    /       |           |    \     ',10,13
+		    db '                         |         |        \  /        |           |     \    ',10,13
+		    db '                         |_ _ _ _ _|         \/         |_ _ _      |      \   ',10,13                                                                                
+		    db '                                                                               ',10,13
+		    db '                                   You Lose ',1,10,13
+            db '',10,13
+            db '',10,13
+            db '',10,13
+            db '',10,13
+            db '',10,13
+            db '                      Press any button to get to the lobby ',10,13,'$'
 
 CODESEG
 
@@ -199,203 +231,245 @@ proc delay
 	ret
 endp delay
 
-
-PROC pixelcolor
-
-    ; Read dot
-    mov bh,0h
-    mov cx,0 ;[x]
-    mov dx,0 ; [y]
-    mov ah,0Dh
-    int 10h ; return al the pixel value read (color?)
-
-    ret
-ENDP pixelcolor
-
-
 ; draw the graphic in a color at poristion
-; get: place, num
+; get: color, offset num_x, x, y
 PROC draw_Graphic
-    push bp
-    mov bp, sp
-    push ax
-    push bx
-	
-    xor ax, ax
-    mov ax, [bp + 6]    ; num
-    xor ah, ah
-    mov bx, [bp + 4]    ; place
-	
-    add al, "1"
-    mov ah, 36
-	mov [word es:bx], ax
-	; draw_Pixel:
-	; 	mov al, [byte ptr bx] ;;check current graphic data and act by it
-	; 	cmp al, 'n' ;;n=enter line
-	; 	JE enter_Line
-	; 	cmp al, 's' ;; s = stop drawing
-	; 	JE stop_Draw
-	;     cmp al, 't' ;;t = transperent pixel
-	; 	JE skip
-    ;     xor ax, ax
-	; 	mov al, 15   ; color
-    ;     mov ah, 0ch
-	; 	int 10h
-	; 	inc bx
-	; 	inc cx
-	; 	JMP draw_Pixel
-	; skip:
-	; 	inc bx
-	; 	inc cx
-	; 	JMP draw_Pixel
-	; enter_Line:
-    ;     mov cx, [bp + 4]    ; x
-	; 	inc dx
-	; 	inc bx
-	; 	JMP draw_Pixel
-	; stop_Draw:
+	push bp
+	mov bp, sp
+	push ax
+	push bx
+	push cx
+	push dx
 
-        pop bx
-        pop ax
-        pop bp
-		ret 4
+	mov ax, [bp + 4]	; color
+	mov bx, [bp + 6]	; offset num_x
+	mov cx, [bp + 8]	; x
+	mov dx, [bp + 10]	; y
+
+	mov ah, 0ch
+
+	draw_Pixel:
+		push ax
+		mov al, [byte ptr bx] ;;check current graphic data and act by it
+		cmp al, 'n' ;;n=enter line
+		JE enter_Line
+		cmp al, 's' ;; s = stop drawing
+		JE stop_Draw
+		cmp al, 't' ;;t = transperent pixel
+		JE skip
+		pop ax
+		int 10h
+		inc bx
+		inc cx
+		JMP draw_Pixel
+	skip:
+		pop ax
+		inc bx
+		inc cx
+		JMP draw_Pixel
+	enter_Line:
+		pop ax
+		mov cx, [bp + 8]	; x
+		inc dx
+		inc bx
+		JMP draw_Pixel
+
+	stop_Draw:
+		pop ax
+
+		pop dx
+		pop cx
+		pop bx
+		pop ax
+		pop bp
+		ret	8
 ENDP draw_Graphic
 
 ; get: num
 ; give: offset num_x
 PROC find_Graphic
-    push bp
-    mov bp, sp
-    push ax
-		mov ax, [bp + 4]
+	push bp
+	mov bp, sp
+	push ax
+	push bx
 
+	mov ax, [bp + 4]
+			
 		cmp ax, 0
 		JNE not_0
-        mov ax, offset num0
-		mov [bp + 4], ax
+		mov bx, offset num0
+		mov [bp + 4], bx
 		JMP draw_Num1
 	not_0:
 		cmp ax, 1
 		JNE not_1
-		mov ax, offset num1
-		mov [bp + 4], ax
+		mov bx, offset num1
+		mov [bp + 4], bx
 		JMP draw_Num1
 	not_1:
 		cmp ax, 2
 		JNE not_2
-		mov ax, offset num2
-		mov [bp + 4], ax
+		mov bx, offset num2
+		mov [bp + 4], bx
 		JMP draw_Num1
 	not_2:
 		cmp ax, 3
 		JNE not_3
-		mov ax, offset num3
-		mov [bp + 4], ax
+		mov bx, offset num3
+		mov [bp + 4], bx
 		JMP draw_Num1
 	not_3:
 		cmp ax, 4
 		JNE not_4
-		mov ax, offset num4
-		mov [bp + 4], ax
+		mov bx, offset num4
+		mov [bp + 4], bx
 		JMP draw_Num1
 	not_4:
 	 	cmp ax, 5
 	 	JNE not_5
-		mov ax, offset num5
-		mov [bp + 4], ax
+		mov bx, offset num5
+		mov [bp + 4], bx
 	 	JMP draw_Num1
-	 not_5:
+	not_5:
 		cmp ax, 6
 		JNE not_6
-	 	mov ax, offset num6
-		mov [bp + 4], ax
-    	JMP draw_Num1
+	 	mov bx, offset num6
+		mov [bp + 4], bx
+		JMP draw_Num1
 	not_6:
 		cmp ax, 7
 		JNE not_7
-		mov ax, offset num7
-		mov [bp + 4], ax
+		mov bx, offset num7
+		mov [bp + 4], bx
 		JMP draw_Num1
 	not_7:
 		cmp ax, 8
 		JNE not_8
-		mov ax, offset num8
-		mov [bp + 4], ax
+		mov bx, offset num8
+		mov [bp + 4], bx
 		JMP draw_Num1
 	not_8:
 		cmp ax, 9
 		JNE draw_Num1
-		mov ax, offset num9
-		mov [bp + 4], ax
+		mov bx, offset num9
+		mov [bp + 4], bx
 	draw_Num1:
-
-    pop ax
-    pop bp
-	ret
+		
+		pop bx
+		pop ax
+		pop bp
+		ret
 ENDP find_Graphic
 
-; get: num, [textPlace] = place
+; get: num, x, y
 ; print number at the right possion
 PROC print_Number
-    push bp
-    mov bp, sp
-    push ax
-    push bx
-    push cx
-    push dx
-	
-    mov ax, [bp + 4]
+	push bp
+	mov bp, sp
+	push ax
+	push bx
+	push cx
+    push es
 
+	mov ax, [bp + 8]	; y
+	mov [textY], ax
+	mov ax, [bp + 6]	; x
+	mov [textX], ax
+	mov ax, [bp + 4]
+	
 	mov bl, 100
-	div bl      ; 100 / num --> al = handreds, ah = rest
+	div bl
 	push ax
 	xor ah, ah
-
-	; push ax
-	; call find_Graphic
-    ; pop ax
-
-    push ax
-    push [textPlace]
+	push [textY]
+	push [textX]
+	add [textX], 8
+	push ax
+	call find_Graphic
+	push black
 	call draw_Graphic
-    add [textPlace], 1
 
 	pop ax
 	mov al, ah
 	xor ah, ah
 	mov bl, 10
-	div bl      ; 10 / num --> al = dozens, ah = units
+	div bl
 	push ax
 	xor ah, ah
-
-	; push ax
-	; call find_Graphic
-    ; pop ax
-
-    push ax
-    push [textPlace]
+	push [textY]
+	push [textX]
+	add [textX], 8
+	push ax
+	call find_Graphic
+	push black
 	call draw_Graphic
-    add [textPlace], 1
 
 	pop ax
 	mov al, ah
 	xor ah, ah
-	
-	; push ax
-	; call find_Graphic
-    ; pop ax
-
-    push ax
-    push [textPlace]
+	push [textY]
+	push [textX]
+	add [textX], 8
+	push ax
+	call find_Graphic
+	push black
 	call draw_Graphic
 
-    pop dx
-    pop cx
-    pop bx
-    pop ax
-    pop bp
-	ret 2
+    pop es
+	pop cx
+	pop bx
+	pop ax
+	pop bp
+	ret 6
 ENDP print_Number
+
+
+; get: num, x, y
+; print number at the right possion
+PROC print_Number2
+    push bp
+	mov bp, sp
+	push ax
+	push bx
+	push cx
+    push es
+
+	mov ax, [bp + 8]	; y
+	mov [textY], ax
+	mov ax, [bp + 6]	; x
+	mov [textX], ax
+	mov ax, [bp + 4]
+	
+	mov bl, 10
+	div bl
+	push ax
+	xor ah, ah
+	push [textY]
+	push [textX]
+	add [textX], 8
+	push ax
+	call find_Graphic
+	push black
+	call draw_Graphic
+
+	pop ax
+	mov al, ah
+	xor ah, ah
+	push [textY]
+	push [textX]
+	add [textX], 8
+	push ax
+	call find_Graphic
+	push black
+	call draw_Graphic
+
+    pop es
+	pop cx
+	pop bx
+	pop ax
+	pop bp
+	ret 6
+ENDP print_Number2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                                                                                ;
@@ -540,7 +614,7 @@ proc Printmap
 
     mov ax, buildScreen
     mov es, ax
-    mov cx, 32000
+    mov cx, 64000
     mov ax, beckgroundseg
     mov ds, ax
 
@@ -561,11 +635,11 @@ proc Printmap
     mbvsbloop1:
     xor ax, ax
     mov ax, [word ds:di]
-    ;cmp ah, 67h
-    ;je dontPrintPixel1
+    cmp ah, 0D5h
+    je dontPrintPixel1
     mov [word es:di], ax
     dontPrintPixel1:
-    add di, 2
+    inc di
 
     pop cx
     loop Printmaploop
@@ -723,6 +797,166 @@ PROC FirstPrintmap
     pop bp
     ret 2
 ENDP FirstPrintmap
+
+
+;;get: width - 320, length - 200, offset fileHome, offset SrcLine
+PROC firstPrintHomeScreen
+    push bp
+    mov bp, sp
+    push ax
+    push si
+    push cx
+    push di
+    push es
+    
+    push [bp + 8]  ; offset fileHome
+    push offset ErrorMsg
+    call OpenFile
+
+    push offset Header
+    call ReadHeader
+
+    push offset palette
+    call ReadPalette
+
+    push offset palette
+    call CopyPal
+
+    
+    mov ax, [bp + 4]
+    mov [width], ax
+    mov ax, [bp + 6]
+    mov [length], ax
+    mov ax, homeScreenSeg
+    mov es, ax
+    mov cx, [length]
+
+    Printmaploop2:
+    push cx
+    
+    ; di = cx*320, point to the correct screen line
+    ; cx - the line number from the end to 0
+
+    mov ax, 320
+    mul cx ; ax = cx*320
+    
+    mov di, ax
+    ;add di, [bp + 6]
+    ; Read one line to variable ScrLine (buffer)
+    mov ah,3fh
+    mov cx, [width]
+    mov dx,[bp + 10] ; offset ScrLine
+    int 21h
+
+    cld ; Clear direction flag, for movsb for inc si, inc di
+    ;call delay
+    mov cx,[width]
+    mov si, [bp + 10] ; offset SceLine
+    dec di
+
+    mbvsbloop3:
+    xor ax, ax
+    mov ax, [ds:si]
+    mov [es:di], ax
+    inc si
+    inc di
+    loop mbvsbloop3
+
+
+    pop cx
+    loop Printmaploop2
+
+    push offset ErrorMsg
+    call closeFile
+
+    pop es
+    pop di
+    pop cx
+    pop si
+    pop ax
+    pop bp
+    ret 8
+ENDP firstPrintHomeScreen
+
+
+;;get: width - 320, length - 200, offset fileIntr, offset SrcLine
+PROC firstPrintIntrScreen
+    push bp
+    mov bp, sp
+    push ax
+    push si
+    push cx
+    push di
+    push es
+    
+    push [bp + 8]  ; offset fileHome
+    push offset ErrorMsg
+    call OpenFile
+
+    push offset Header
+    call ReadHeader
+
+    push offset palette
+    call ReadPalette
+
+    push offset palette
+    call CopyPal
+
+    
+    mov ax, [bp + 4]
+    mov [width], ax
+    mov ax, [bp + 6]
+    mov [length], ax
+    mov ax, intrScreenSeg
+    mov es, ax
+    mov cx, [length]
+
+    Printmaploop3:
+    push cx
+    
+    ; di = cx*320, point to the correct screen line
+    ; cx - the line number from the end to 0
+
+    mov ax, 320
+    mul cx ; ax = cx*320
+    
+    mov di, ax
+    ;add di, [bp + 6]
+    ; Read one line to variable ScrLine (buffer)
+    mov ah,3fh
+    mov cx, [width]
+    mov dx,[bp + 10] ; offset ScrLine
+    int 21h
+
+    cld ; Clear direction flag, for movsb for inc si, inc di
+    ;call delay
+    mov cx,[width]
+    mov si, [bp + 10] ; offset SceLine
+    dec di
+
+    mbvsbloop4:
+    xor ax, ax
+    mov ax, [ds:si]
+    mov [es:di], ax
+    inc si
+    inc di
+    loop mbvsbloop4
+
+
+    pop cx
+    loop Printmaploop3
+
+    push offset ErrorMsg
+    call closeFile
+
+    pop es
+    pop di
+    pop cx
+    pop si
+    pop ax
+    pop bp
+    ret 8
+ENDP firstPrintIntrScreen
 
 ; copy the image to memory
 ; get offset bitmap
@@ -960,10 +1194,24 @@ PROC FirstPrintAll
     push bp
     mov bp, sp
 
+
     push offset filename
     push 200
     push 320
     call copyBeckground
+
+
+    push offset ScrLine
+    push offset fileHome
+    push 200
+    push 320
+    call firstPrintHomeScreen
+
+    push offset ScrLine
+    push offset fileIntr
+    push 200
+    push 320
+    call firstPrintIntrScreen
 
     push 20
     push 20
@@ -1045,6 +1293,79 @@ PROC screenToScreen
     ret
 ENDP screenToScreen
 
+
+; move the Home segment to the screen
+PROC HomeToScreen
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push di
+    push ds
+
+    
+    mov ax, homeScreenSeg
+    mov ds, ax
+    xor di, di
+    xor bx, bx
+
+    mov cx, 32000 ; 64000 / 2
+    movToScreen1:
+    mov ax, [word ds:bx]
+    mov [word es:di], ax
+
+    ; mov [word es:di], [word ds:bx]
+    add bx, 2
+    add di, 2
+    loop movToScreen1
+
+
+    pop ds
+    pop di
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret
+ENDP HomeToScreen
+
+; move the intr segment to the screen
+PROC IntrToScreen
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push di
+    push ds
+
+    
+    mov ax, IntrScreenSeg
+    mov ds, ax
+    xor di, di
+    xor bx, bx
+
+    mov cx, 64000
+    movToScreen3:
+    mov ax, [ds:bx]
+    mov [es:di], ax
+
+    ; mov [word es:di], [word ds:bx]
+    add bx, 1
+    add di, 1
+    loop movToScreen3
+
+
+    pop ds
+    pop di
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret
+ENDP IntrToScreen
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                                                                                ;
 ;                                                                                                                                ;
@@ -1060,9 +1381,13 @@ PROC printBackground
     mov bp, sp
     push ax
 
+    call printMoney
+
     push 200            ; length
     push 320            ; width
     call printBmpPic
+
+    call printMoney
 
     push 16284          ; 320 * 50 + 284
     push offset ninja   ; offset bitmap
@@ -1072,7 +1397,6 @@ PROC printBackground
     push 32284          ; 320 * 100 + 284
     push offset wizard  ; offset bitmap
     call PrintCharecter
-
 
     pop ax
     pop bp
@@ -1230,7 +1554,7 @@ PROC PopBalloon
 
     dec [balloonsOnScreen]
 
-    add [money], 1  ; per balloon
+    inc [money]  ; per balloon
     
     pop cx
     pop bx
@@ -1362,8 +1686,15 @@ PROC chackPressed
     isWizardStillPressed:
     mov ah, [stillPressedwizard]    ; is it allready took
     cmp ah, 1
-    jne keepChecking
+    jne isEchoStillPressed
     call chackReleaseW
+    jmp doesnotpressed
+
+    isEchoStillPressed:
+    mov ah, [stillPressedecho]    ; is it allready took
+    cmp ah, 1
+    jne keepChecking
+    call chackReleaseE
     jmp doesnotpressed
 
     keepChecking:
@@ -1384,6 +1715,10 @@ PROC chackPressed
     push cx
     push dx
     call ckeckPressedW
+
+    push cx
+    push dx
+    call checkEcho
 
     doesnotpressed:
 
@@ -1441,7 +1776,7 @@ PROC checkPressedN
     pop bx
     pop ax
     pop bp
-    ret 4    
+    ret 4
 ENDP checkPressedN
 
 ;check about the wizard if pressed
@@ -1636,6 +1971,84 @@ PROC chackReleaseW
     ret
 ENDP chackReleaseW
 
+
+
+;check if echo was pressed
+PROC checkEcho
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov cx, [bp + 6]
+    mov dx, [bp + 4]
+
+    cmp dx, 180 ; start of echo rows
+    jl doesnotpressedE
+
+    cmp dx, 190 ; end of echo rows
+    jg doesnotpressedE
+
+    cmp cx, 284 ; start of echo col
+    jl doesnotpressedE
+
+    cmp cx, 304 ; end of echo col
+    jg doesnotpressedE
+
+    ; buy echo
+
+    cmp [money], 60
+    jb doesnotpressedE
+
+    cmp [echo], 93
+    jg doesnotpressedE
+
+    mov [stillPressedecho], 1
+    sub [money], 60
+    add [echo], 5
+
+    doesnotpressedE:
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret 4    
+ENDP checkEcho
+
+PROC chackReleaseE
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov [stillPressedecho], 1
+
+    mov bx, 0h
+    mov ax, 03h
+    int 33h     ; curser last release
+
+    and bx, 01h
+
+    cmp bx, 01h
+    je notreleased3
+
+    mov [stillPressedecho], 0
+    
+    notreleased3:
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret
+ENDP chackReleaseE
 
 
 ;get start place - y = [bp + 4], x = [bp + 6]
@@ -2900,23 +3313,41 @@ ENDP PrintCharecter
 
 
 
-; ;description
+; print all of the little number in the right down corner
 PROC printMoney
     push ax
+    push cx
 
-    mov [textPlace], 2700  ; 45 * 60
     xor ax, ax
     mov ax, [money]
+    push 180    ; y
+    push 280    ; x
     push ax
     call print_Number
 
-    ; mov [textX], 275
-    ; mov [textY], 190
-    ; mov ax, [echo]
-    ; push ax
-    ; call print_Number
+    push 190
+    push 284
+    mov ax, [echo]
+    push ax
+    call print_Number2
 
+    push 169
+    push 293
+    xor ax, ax
+    mov al, [lives]
+    push ax
+    call print_Number2
+
+    push 169
+    push 273
+    xor ax, ax
+    mov al, [round]
+    push ax
+    call print_Number2
+
+    pop cx
     pop ax
+    ret
 ENDP printMoney
 
 
@@ -3011,8 +3442,6 @@ PROC PrintAllTOSeg
     push offset WShots1
     push offset NShots1
     call PrintAllNShots
-
-    call printMoney
 
     pop ax
     pop bp
@@ -3182,6 +3611,129 @@ PROC fiftyMilisecPass
 ENDP fiftyMilisecPass
 
 
+;get: offset balloons, offset ninjas, offset wizards
+PROC newGame
+    push bp
+    mov bp, sp
+    push ax
+    push cx
+    push dx
+
+    mov [round], 1
+    mov [lives], 5
+    mov [money], 250
+
+    mov bx, [bp + 4]    ;offset balloons
+    mov cx, 200
+    loopZero:
+    mov [word bx], 0
+    add bx, 2
+    loop loopZero
+
+
+    mov bx, [bp + 6]    ;offset ninjas
+    mov cx, 250
+    loopZero1:
+    mov [word bx], 0
+    add bx, 2
+    loop loopZero1
+
+
+    mov bx, [bp + 8]    ;offset wizards
+    mov cx, 250
+    loopZero2:
+    mov [word bx], 0
+    add bx, 2
+    loop loopZero2
+
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret 6
+ENDP newGame
+
+
+;including interaptions
+PROC HomeScreen
+
+    showHome:
+    call HomeToScreen
+
+    checkPressHome:
+    mov ah, 01h
+    int 21h
+
+    cmp al, "i"
+    je introductionL
+
+    cmp al, 27      ; esc
+    je exitTheGame
+
+    cmp al, 13      ; enter
+    jne checkPressHome
+    jmp startNewGame
+
+
+    introductionL:
+    call IntrToScreen
+
+    checkPressIntr:
+    mov ah, 01h
+    int 21h
+
+    cmp al, 27      ; esc
+    je showHome
+
+    cmp al, 13      ; enter
+    jne checkPressIntr
+    jmp startNewGame
+
+    exitTheGame:
+    mov ax, 999
+
+    startNewGame:
+    
+    ret
+ENDP HomeScreen
+
+
+; ;description
+PROC LoseScreen
+    push bp
+    mov bp, sp
+    push ax
+    push dx
+    push ds
+
+    mov ah, 0
+    mov al, 2
+    int 10h
+
+    mov dx, [bp + 4]
+    mov ah, 09h
+    int 21h
+
+    ; Wait for key press
+    mov ah,1
+
+    int 21h
+
+    mov ax, 13h
+    int 10h
+    
+    pop ds
+    pop dx
+    pop ax
+    pop bp
+    ret 2
+ENDP LoseScreen
+
+
+; ;description
+; PROC victoryScreen
+    
+; ENDP victoryScreen
 
 ;Main Loop Of the game
 PROC MainGG
@@ -3191,6 +3743,12 @@ PROC MainGG
 
     call PrintAllTOSeg
     call chackPressed
+
+    cmp [money], 950
+    jb mainnnn
+    mov [money], 949
+
+    mainnnn:
 
     push 0
     call fiftyMilisecPass
@@ -3312,7 +3870,13 @@ PROC MainGG
     cmp [round], 15
     jb keepMain
     pop cx
-    jmp start1
+    add cx, 2
+    push cx
+
+
+    cmp [round], 20
+    jb keepMain
+    jmp victoryYY
 
     keepMain:
     call screenToScreen
@@ -3322,7 +3886,8 @@ PROC MainGG
     pop cx
     jmp main
 
-    start1:
+
+    victoryYY:
     mov cx, 1
     ret
 
@@ -3341,7 +3906,13 @@ mov es, ax
 ; Graphic mode
 mov ax, 13h
 int 10h
-; Process BMP file
+; 
+
+call FirstPrintAll
+
+call HomeScreen
+cmp ax, 999
+je exit
 
 mov ah, 2Ch
 int 21h
@@ -3349,6 +3920,11 @@ int 21h
 mov [timemin], cl
 mov [timesec], dh
 mov [timehundreth], dl
+
+push offset wizards
+push offset ninjas
+push offset balloons
+call newGame
 
 call FirstPrintAll
 
@@ -3361,14 +3937,23 @@ call delay
 
 startGame:
 call MainGG
+call printMoney
 cmp cx, 1
-je start        ; victory screen
+jne endGame
+;call victoryScreen      ; victory screen
 
-endGame:        ; lose screen
 ; Wait for key press
 mov ah,1
 
 int 21h
+
+je start
+
+endGame:        
+push offset LoseS
+call LoseScreen     ; lose screen
+
+jmp start
 ; Back to text mode
 mov ah, 0
 mov al, 2
